@@ -26,7 +26,14 @@ jobs:
       uses: supercharge/mongodb-github-action@1.8.0
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
-    - run: npm ci
+    - name: Run npm ci
+      run: |
+        npm ci
+        if [ $? -ne 0 ]; then
+          echo "npm ci failed, displaying package.json content:"
+          cat package.json
+          exit 1
+        fi
     - run: npm run build --if-present
     - run: npm test
       env:
