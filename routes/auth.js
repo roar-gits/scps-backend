@@ -34,7 +34,14 @@ router.post('/register', [
 });
 
 // Login user
-router.post('/login', async (req, res) => {
+router.post('/login', [
+  body('passphrase').notEmpty().withMessage('Passphrase is required')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
     const { passphrase } = req.body;
     const user = await User.findOne({ passphrase: { $exists: true } });
@@ -46,7 +53,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
   } catch (error) {
-    res.status(400).json({ message: 'Login failed', error: error.message });
+    res.status(500).json({ message: 'Login failed', error: error.message });
   }
 });
 
