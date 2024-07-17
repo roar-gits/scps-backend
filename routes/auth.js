@@ -26,6 +26,7 @@ router.post('/register', [
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.status(201).json({ token });
   } catch (error) {
+    console.error(error);
     if (error.code === 11000) {
       return res.status(400).json({ message: 'Passphrase already in use' });
     }
@@ -34,25 +35,19 @@ router.post('/register', [
 });
 
 // Login user
-router.post('/login', [
-  body('passphrase').notEmpty().withMessage('Passphrase is required')
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
+router.post('/login', async (req, res) => {
   try {
     const { passphrase } = req.body;
-    const user = await User.findOne({ passphrase: { $exists: true } });
+    const user = await User.findOne({ passphrase });
     
-    if (!user || !(await user.matchPassphrase(passphrase))) {
+    if (!user) {
       return res.status(400).json({ message: 'Invalid passphrase' });
     }
     
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Login failed', error: error.message });
   }
 });
