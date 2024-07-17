@@ -45,6 +45,10 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    logger.info(`Server is running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
